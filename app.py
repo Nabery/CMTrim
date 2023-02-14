@@ -22,13 +22,6 @@ def generate_unique_id():
     return unique_id
 
 
-class CommercialList:
-    def __init__(self, regex):
-        self.counter = Counter(regex)
-        self.trimmedList = list(set(regex))
-        self.completeList = list(regex)
-
-
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
@@ -59,14 +52,15 @@ def upload_file():
         text = ""
         for page in reader.pages:
             text += page.extract_text() + "\n"
-        # Starting with CM and 0-9 can happen multiple times
-        regex = re.findall("CM[0-9]+", text)
-        CmList = CommercialList(regex)
-        response = jsonify({"cmCounter": CmList.counter,
-                               "trimmedList": CmList.trimmedList,
-                               "completeLen": len(CmList.completeList),
-                               "trimmedLen": len(CmList.trimmedList)})
-        return response
+        print(text)
+        pattern = r"(CM[0-9]+)\s+(.*?)(?=\s*CM|\s*CodMidia Titulo_Anterior)" 
+        cmDict = {}
+        result = re.findall(pattern, text, re.DOTALL)
+        for match in result:
+            cmId = match[0]
+            title = match[1]
+            cmDict[cmId] = title
+        return (jsonify(cmDict))
     return render_template('template.html')
 
 
