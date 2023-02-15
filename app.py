@@ -1,10 +1,9 @@
 import os
 from flask import Flask, flash, request, redirect, url_for, jsonify, render_template
 from werkzeug.utils import secure_filename
-from PyPDF2 import PdfMerger, PdfReader
+from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import datetime
 import re
-from collections import Counter
 ALLOWED_EXTENSIONS = {'pdf'}
 
 app = Flask(__name__)
@@ -52,7 +51,6 @@ def upload_file():
         text = ""
         for page in reader.pages:
             text += page.extract_text() + "\n"
-        print(text)
         pattern = r"(CM[0-9]+)\s+(.*?)(?=\s*CM|\s*CodMidia Titulo_Anterior)" 
         cmDict = {}
         result = re.findall(pattern, text, re.DOTALL)
@@ -60,7 +58,8 @@ def upload_file():
             cmId = match[0]
             title = match[1]
             cmDict[cmId] = title
-        return (jsonify(cmDict))
+        date = datetime.datetime.today().strftime('%B %d, %Y')
+        return render_template("cmlist.html", dictionary=cmDict, date=date) 
     return render_template('template.html')
 
 
